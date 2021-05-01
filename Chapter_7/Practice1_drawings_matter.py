@@ -30,7 +30,6 @@ STEP_Y = int(RECT_HT / 2)
 screen = tk.Tk()
 canvas = tk.Canvas(screen, width=IMG_WIDTH, height=IMG_HT + 130)
 
-
 class Search():
     """Read image and identify landing rectangles based on input criteria."""   
 
@@ -68,22 +67,7 @@ class Search():
                 lr_x = RECT_WIDTH
                 lr_y += STEP_Y
             if lr_y > LAT_30_S + STEP_Y:
-                break
-
-    def draw_qc_rects(self):
-        """Draw overlapping search rectangles on image as a check."""
-        img_copy = IMG_GRAY.copy()
-        rects_sorted = sorted(self.rect_coords.items(), key=lambda x: x[0])
-        print("\nRect Number and Corner Coordinates (ul_x, ul_y, lr_x, lr_y):")
-        for k, v in rects_sorted:
-            print("rect: {}, coords: {}".format(k, v))
-            cv.rectangle(img_copy,
-                         (self.rect_coords[k][0], self.rect_coords[k][1]),
-                         (self.rect_coords[k][2], self.rect_coords[k][3]),
-                         (255, 0, 0), 1)
-        cv.imshow('QC Rects {}'.format(self.name), img_copy)
-        cv.waitKey(3000)
-        cv.destroyAllWindows()        
+                break     
 
     def sort_stats(self):  
         """Sort dictionaries by values and create lists of top N keys."""
@@ -145,24 +129,42 @@ class Search():
                 txt_y = IMG_HT + 20                
         canvas.pack()
         screen.mainloop()
-
+        
+        
+def run_total_stats(image):
+    """Run stats on a numpy array made from an image."""
+    print('mean = {}'.format(np.mean(image)))
+    print('std = {}'.format(np.std(image)))
+    print('ptp = {}'.format(np.ptp(image)))
+    #cv.waitKey(1000)    
+ 
+        
         
 def main():
     app = Search('670x335 km')
+    print('Original plot:')
+    run_total_stats(IMG_COLOR)
     app.run_rect_stats()
     app.sort_stats()
-    app.make_final_display() #cannot keep two tkinter windows open??
-
-   
+    print('Top 20 landing rectangles:')
+    print(app.high_graded_rects)
+    print()
+    
     #draw a line around the region
-    app_line = Search('670x335 km with line')
     cv.line(IMG_GRAY, (0, LAT_30_N+30), (IMG_WIDTH, LAT_30_N+30),
                 (255, 0, 0), 1)
     cv.line(IMG_COLOR, (0, LAT_30_N+30), (IMG_WIDTH, LAT_30_N+30),
                 (255, 0, 0), 1)
-    app_line.run_rect_stats()
-    app_line.sort_stats()
-    app_line.make_final_display()  
+    app2 = Search('670x335 km with a line')
+    print('Add a line:')
+    run_total_stats(IMG_COLOR)
+    app2.run_rect_stats()
+    app2.sort_stats()
+    print('Top 20 landing rectangles:')
+    print(app2.high_graded_rects)
+    app2.make_final_display() #cannot keep two tkinter windows open at the same time
+
+ 
 
 
 if __name__ == '__main__':
